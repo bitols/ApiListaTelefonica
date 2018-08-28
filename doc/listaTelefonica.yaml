@@ -1,0 +1,290 @@
+swagger: '2.0'
+info:
+  description: Conteúdo elaborado para consumir dados da API.
+  version: 1.0.0
+  title: Lista Telefônica
+basePath: /api
+tags:
+  - name: usuarios
+    description: Criação de conta e processo de login.
+  - name: tipos
+    description: Lista de tipos de telefones cadastráveis.
+  - name: contatos
+    description: Gerenciamento de contatos da conta. Criação, edição e exclusão e listagem
+      de contatos.
+schemes:
+  - http
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /usuarios:
+    post:
+      tags:
+        - usuarios
+      summary: Cadastro de usuário
+      description: 'Gravação de login, senha e nome do usuário'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Dados do usuário
+          required: true
+          schema:
+            type: object
+            properties:
+              nome:
+                type: string
+              login:
+                type: string
+              senha:
+                type: string
+      responses:
+        '200':
+          description: Usuário cadastrado com sucesso.
+        '409':
+          description: Conflito
+        '422':
+          description: Modelo inválido
+  /usuarios/login:
+    post:
+      tags:
+        - usuarios
+      summary: Login no sistema
+      description: 'Gravação de login, senha e nome do usuário'
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: usuario
+          type: string
+          required: true
+        - in: formData
+          name: senha
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Sucesso.
+          schema:
+            type: object
+            properties:
+              apiKey:
+                type: string
+                format: jwt
+        '401':
+          description: Não autorizado.
+  /tipos:
+    get:
+      tags: 
+        - tipos
+      summary: Retorno de tipos de telefones
+      description:  (Celular, Comercial e Residencial)
+      consumes:
+        - application/json
+      produces: 
+        - application/json
+      responses:
+        '200':
+          description: Sucesso.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                tipo:
+                  type: string
+        '204':
+          description: Nenhum dado encontrado.
+  /contatos:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - contatos
+      summary: Cadastro de contato
+      description: Gravação de novo contato vinculado ao usuário
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Dados do contato
+          required: true
+          schema:
+            type: object
+            properties:
+              nome:
+                type: string
+              telefones:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    numero:
+                      type: string
+                    tipo: 
+                      type: string
+      responses:
+        '200':
+          description: Contato cadastrado com sucesso.
+        '401':
+          description: Não autorizado.          
+        '422':
+          description: Modelo inválido
+    put:
+      security:
+        - Bearer: []
+      tags:
+        - contatos
+      summary: Edição de contato
+      description: Alteração de contato vinculado ao usuário
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Dados do contato
+          required: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                format: int32
+              nome:
+                type: string
+              telefones:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    numero:
+                      type: string
+                    tipo: 
+                      type: string
+
+      responses:
+        '200':
+          description: Contato editado com sucesso.
+        '401':
+          description: Não autorizado.          
+        '422':
+          description: Modelo inválido
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - contatos
+      summary: Listagem de contatos
+      description: Lista de contatos vinculados ao usuário
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Sucesso.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int32
+                nome:
+                  type: string
+                telefones:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      numero:
+                        type: string
+                      tipo: 
+                        type: string
+        '204':
+          description: Nenhum contato encontrado.
+        '401':
+          description: Não autorizado.          
+  '/contatos/{filtro}':
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - contatos
+      summary: Listagem de contatos
+      description: Lista de contatos vinculados ao usuário
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: filtro
+          in: path
+          description: Valor a ser consultado nos contatos.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Sucesso.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int32
+                nome:
+                  type: string
+                telefones:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      numero:
+                        type: string
+                      tipo: 
+                        type: string
+
+        '204':
+          description: Nenhum contato encontrado.
+        '401':
+          description: Não autorizado.          
+  '/contatos/{id}/remove':
+    delete:
+      security:
+        - Bearer: []
+      tags:
+        - contatos
+      summary: Remoção de contato
+      description: Remove um contato vinculado ao usuario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: Id do contato a ser removido.
+          required: true
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: Contato removido com sucesso.
+        '401':
+          description: Não autorizado.          
